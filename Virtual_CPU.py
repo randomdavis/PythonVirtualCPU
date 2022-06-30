@@ -182,26 +182,29 @@ class Instructions:
     def div(self, op1, op2) -> None:
         op1.set_value(op1.get_value() // op2.get_value())
 
-    def push(self, op1) -> None:
+    def push(self, from_operand: Operand) -> None:
         self.cpu.SP.push()
-        self.cpu.stack.set_mem(self.cpu.SP.get_value(), op1.get_value())
+        self.cpu.stack.set_mem(self.cpu.SP.get_value(), from_operand.get_value())
 
-    def pop(self, op1) -> None:
-        op1.set_value(self.cpu.stack.get_mem(self.cpu.SP.get_value()))
+    def pop(self, to_operand: Operand) -> None:
+        to_operand.set_value(self.cpu.stack.get_mem(self.cpu.SP.get_value()))
         self.cpu.SP.pop()
 
-    def load(self, op1, op2) -> None:
-        self.cpu.set_mem(op1.get_value(), op2.get_value())
+    def save(self, to_address: Operand, value_to_set: Operand) -> None:
+        self.cpu.set_mem(to_address.get_value(), value_to_set.get_value())
 
-    def call(self, op1) -> None:
+    def load(self, from_address: Operand, to_operator: Operand) -> None:
+        to_operator.set_value(self.cpu.get_mem(from_address.get_value()))
+
+    def call(self, function_address: Operand) -> None:
         self.push(Literal(self.cpu.IC.get_value() + 1))
-        self.jmp(op1)
+        self.jmp(function_address)
 
-    def ret(self) -> None:  #
+    def ret(self) -> None:
         self.pop(self.cpu.IC)
 
-    def set(self, op1, op2) -> None:
-        op1.set_value(op2.get_value())
+    def set(self, to_operand: Operand, from_operand: Operand) -> None:
+        to_operand.set_value(from_operand.get_value())
 
     def end(self) -> bool:
         return False
@@ -339,7 +342,7 @@ class Computer:
         self.start(entry_point)
 
 
-# TODO: Labelled memory? How do I reference memory addresses?
+# TODO: Add a way to label memory addresses
 
 
 if __name__ == '__main__':
@@ -351,8 +354,9 @@ loop: out R0
 dec R0
 cmp R0, #0
 jge loop
+test: #123
 out "Okay, it's over!
 end
-;commented out nonsense
+;commented out
 '''
     PC.run_program(program_str)
